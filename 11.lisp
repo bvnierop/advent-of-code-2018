@@ -1,13 +1,3 @@
-(defun memoize (fn)
-  (let ((cache (make-hash-table :test 'equalp)))
-    (lambda (&rest args)
-      (multiple-value-bind (value found) (gethash args cache)
-        (if found
-            (progn
-              (format t "Found cache for args: ~a: ~a~%" args value)
-              value)
-            (setf (gethash args cache) (apply fn args)))))))
-
 (defun rack-id (x y)
   (declare (ignore y))
   (+ x 10))
@@ -27,50 +17,69 @@
                     (rack-id x y)))
    5))
 
-;; solve each 1x1
-;; for 2x2: 1x1 + 1x1's
-;; for 3x3: 2x2 + 1x1's
-;; ...
+;; Given
+;;  A B C
+;;  D E F
+;;  G H I
+;; 
+;; The partial sum of I is
+;;   PS[H] + PS[F] + power(I) - PS[E]
+;;     The reason for - PS[E] is because we've counted that twice
+(defun ps (arr x y)
+  (aref arr x y))
 
-(defparameter *cache* (make-hash-table :test 'equalp))
-(defun grid-value (x y grid-serial-number grid-size)
-  (if (= 1 grid-size)
-      (power-value x y grid-serial-number)
-      (multiple-value-bind (value found) (gethash (list x y grid-serial-number grid-size) *cache*)
-        (if found
-            value
-            (let ((result (+ (grid-value x y grid-serial-number (1- grid-size))
-                             (loop for xx from x below (+ x grid-size)
-                                sum (power-value xx (+ y grid-size -1) grid-serial-number))
-                             (loop for yy from y below (+ y grid-size -1) ;; don't count the corner twice
-                                sum (power-value (+ x grid-size -1) yy grid-serial-number)))))
-              (setf (gethash (list x y grid-serial-number grid-size) *cache*) result)
-              ;; remove smaller from cache, we don't need it anymore
-              (remhash (list x y grid-serial-number (1- grid-size)) *cache*)
-              result)))))
+(defun partial-sums (grid-serial-number)
+  (loop
+     with partials = (make-array (list 301 301))
+     for x from 1 upto 300
+     do (loop for y from 1 upto 300
+           do (setf (aref partials x y)
+                    (-
+                     (+ (ps partials (1- x) y)
+                        (ps partials x (1- y))
+                        (power-value x y grid-serial-number))
+                     (ps partials (1- x) (1- y)))))
+     finally (return partials)))
 
-(defun find-highest-power-grid (grid-serial-number grid-size)
+;; Given
+;;  A B C D E
+;;  F G H I J
+;;  K L M N O
+;;  P Q R S T
+;;  U V W X Y
+;;
+;; The power value of a 3x3 grid at G is...
+;;   PS[S] - PS[D] - PS[P] + PS[A]
+(defun grid-value (partials x y grid-size)
+  (+
+   (- (ps partials (+ x grid-size -1) (+ y grid-size -1))
+      (ps partials (1- x) (+ y grid-size -1))
+      (ps partials (+ x grid-size -1) (1- y)))
+   (ps partials (1- x) (1- y))))
+
+(defun find-highest-power-grid (grid-serial-number grid-size &optional (partials (partial-sums grid-serial-number)))
   (loop
      with best-power = 0
      with best-coord = nil
 
      for x from 1 upto (1+ (- 300 grid-size))
      do (loop for y from 1 upto (1+ (- 300 grid-size))
-           when (< best-power (grid-value x y grid-serial-number grid-size))
-           do (setf best-power (grid-value  x y grid-serial-number grid-size)
+           when (< best-power (grid-value partials x y grid-size))
+           do (setf best-power (grid-value partials x y grid-size)
                     best-coord (list x y)))
 
      finally (return (list best-power best-coord))))
 
 (defun find-highest-power-grid-of-any-size (grid-serial-number)
   (loop
+     with partials = (partial-sums grid-serial-number)
      with best-power = 0
      with best-coord = nil
 
      for grid-size from 1 to 300
 
-     for result = (find-highest-power-grid grid-serial-number grid-size)
-     then (find-highest-power-grid grid-serial-number grid-size)
+     for result = (find-highest-power-grid grid-serial-number grid-size partials)
+     then (find-highest-power-grid grid-serial-number grid-size partials)
 
      when (< best-power (first result))
      do (setf best-power (first result)
@@ -81,4 +90,6 @@
 (format t "coord: ~a~%" (find-highest-power-grid 42 3))
 (format t "coord: ~a~%" (find-highest-power-grid 8868 3))
 
+(format t "coord: ~a~%" (find-highest-power-grid-of-any-size 18))
+(format t "coord: ~a~%" (find-highest-power-grid-of-any-size 42))
 (format t "coord: ~a~%" (find-highest-power-grid-of-any-size 8868))
