@@ -105,7 +105,7 @@
          for config = (serialize-plants plants) then (serialize-plants plants)
 
          when (seen? config)
-         do (return (list plants (first-seen config) (first-score config) generation (score-generation plants)))
+         do (return (list config (first-seen config) (first-score config) generation (score-generation plants)))
 
          unless (seen? config)
          do (seen! config generation (score-generation plants))))))
@@ -129,4 +129,4 @@
     (format t "cycle: ~a~%" (find-cycle (first input) (second input)))
     (format t "score after 50000000000 generations: ~a~%" (calculate-score-of-high-generation 50000000000 (first input) (second input)))))
 
-(solve)
+(time (solve))
