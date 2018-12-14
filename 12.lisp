@@ -121,7 +121,7 @@
       (+ second-score (* step remaining-generations)))))
 
 (defun solve ()
-  (let ((input (parse-input "12-test.txt")))
+  (let ((input (parse-input "12.txt")))
     (format t "~a~%" (serialize-plants (generation-n 0 (first input) (second input))))
     (format t "~a~%" (serialize-plants (generation-n 1 (first input) (second input))))
     (format t "~a~%" (serialize-plants (generation-n 2 (first input) (second input))))
