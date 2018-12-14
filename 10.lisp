@@ -83,9 +83,9 @@
       (format t "~a: ~a~%" what obj)
       (format t "~a~%" obj)))
 
-(with-open-file (f "10.txt")
+(time (with-open-file (f "10.txt")
   (out
    (generate-message
     (loop for line = (read-line f nil)
        while line
-       collect (parse-line line)))))
+       collect (parse-line line))))))

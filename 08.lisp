@@ -25,8 +25,10 @@
 
 (defparameter *cache* (make-hash-table :test 'equalp))
 (defun node-value (node)
-  ;; TODO: cache
-  (calculate-node-value node))
+  (multiple-value-bind (value found) (gethash node *cache*)
+    (if found
+        value
+        (setf (gethash node *cache*) (calculate-node-value node)))))
 
 
 (defun calculate-node-value (node)
@@ -41,8 +43,8 @@
       (format t "~a: ~a~%" what obj)
       (format t "~a~%" obj)))
 
-(with-open-file (in "08-test.txt")
+(with-open-file (in "08.txt")
   (let ((tree (parse-node in)))
-    (out tree "tree")
+    ;; (out tree "tree")
     (out (sum-metadata tree) "sum of metadata")
     (out (node-value tree) "value of root")))

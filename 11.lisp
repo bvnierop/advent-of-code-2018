@@ -90,6 +90,6 @@
 (format t "coord: ~a~%" (find-highest-power-grid 42 3))
 (format t "coord: ~a~%" (find-highest-power-grid 8868 3))
 
-(format t "coord: ~a~%" (find-highest-power-grid-of-any-size 18))
+(time (format t "coord: ~a~%" (find-highest-power-grid-of-any-size 18)))
 (format t "coord: ~a~%" (find-highest-power-grid-of-any-size 42))
-(format t "coord: ~a~%" (find-highest-power-grid-of-any-size 8868))
+(time (format t "coord: ~a~%" (find-highest-power-grid-of-any-size 8868)))
