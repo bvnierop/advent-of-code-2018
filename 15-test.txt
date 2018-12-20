@@ -1,0 +1,11 @@
+#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#
+#######
+
+Combat ends after 47 full rounds
+Goblins win with 590 total hit points left
+Outcome: 47 * 590 = 27730
